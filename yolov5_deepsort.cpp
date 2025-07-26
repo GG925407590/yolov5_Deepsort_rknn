@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 
     const int thread_num = 5;
     std::array<thread, thread_num> threads;
-    videoRead(result.c_str(), 7);
+    videoRead(video_name, 7);
     // used CPU: 0, 4, 5, 6, 7
     threads = {
         thread(&Yolo::detect_process, &detect1), // 类成员函数特殊写法
