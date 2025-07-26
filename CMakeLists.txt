@@ -33,16 +33,25 @@ set(RGA_LIB ${RGA_PATH}/lib/librga.so)
 
 include_directories(${RKNN_API_PATH}/include)
 
-set(
-    include_libs  
-    "${PROJECT_SOURCE_DIR}/include"
-    "${PROJECT_SOURCE_DIR}/yolov5/include"
-    "${PROJECT_SOURCE_DIR}/deepsort/include"
-    ${PROJECT_SOURCE_DIR}/3rdparty/librknn_api/include
-    ${PROJECT_SOURCE_DIR}/3rdparty/rga/include
-)
+# set(
+#     include_libs  
+#     "${PROJECT_SOURCE_DIR}/include"
+#     "${PROJECT_SOURCE_DIR}/yolov5/include"
+#     "${PROJECT_SOURCE_DIR}/deepsort/include"
+#     ${PROJECT_SOURCE_DIR}/3rdparty/librknn_api/include
+#     ${PROJECT_SOURCE_DIR}/3rdparty/rga/include
+# )
 
-include_directories(${include_libs})
+# include_directories(${include_libs})
+
+include_directories(${CMAKE_SOURCE_DIR}/3rdparty)
+include_directories(${CMAKE_SOURCE_DIR}/include)
+include_directories(${RGA_PATH}/include)
+include_directories(${CMAKE_SOURCE_DIR}/yolov5/include)
+include_directories(${CMAKE_SOURCE_DIR}/include)
+include_directories(${CMAKE_SOURCE_DIR}/deepsort/include)
+
+
 
 aux_source_directory(${PROJECT_SOURCE_DIR}/yolov5/src YOLO_SRC_DIR)
 aux_source_directory(${PROJECT_SOURCE_DIR}/src YOLO_SRC_DIR)
