@@ -22,6 +22,9 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/yolov5/src YOLO_SRC_DIR)
 aux_source_directory(${PROJECT_SOURCE_DIR}/src YOLO_SRC_DIR)
 add_executable(yolov5_deepsort yolov5_deepsort.cpp ${YOLO_SRC_DIR})
 
+set(RKNN_RT_LIB ${PROJECT_SOURCE_DIR}/3rdparty/librknn_api/aarch64/librknnrt.so)
+set(RGA_LIB ${PROJECT_SOURCE_DIR}/3rdparty/rga/lib/librga.so)
+
 # 添加动态链接库
 set(
     dynamic_libs  pthread
@@ -34,3 +37,10 @@ add_definitions("-g")
 
 target_link_libraries(yolov5_deepsort ${OpenCV_LIBS})
 target_link_libraries(yolov5_deepsort ${dynamic_libs} deepsort)
+
+# install target and libraries
+set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/install/yolov5_deepsort_${CMAKE_SYSTEM_NAME})
+install(TARGETS yolov5_deepsort DESTINATION ./)
+install(PROGRAMS ${RKNN_RT_LIB} DESTINATION lib)
+install(PROGRAMS ${RGA_LIB} DESTINATION lib)
+install(DIRECTORY model DESTINATION ./)
