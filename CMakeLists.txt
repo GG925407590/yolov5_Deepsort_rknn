@@ -3,6 +3,8 @@ project(yolov5_deepsort VERSION 0.1.0)
 
 add_subdirectory(deepsort)
 
+find_package(ZLIB REQUIRED)
+
 find_package(OpenCV 4 REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 find_package(Eigen3 REQUIRED)
@@ -51,7 +53,7 @@ add_executable(yolov5_deepsort yolov5_deepsort.cpp ${YOLO_SRC_DIR})
 
 
 
-target_link_libraries(yolov5_deepsort ${OpenCV_LIBS} deepsort ${RKNN_RT_LIB} ${RGA_LIB})
+target_link_libraries(yolov5_deepsort ${OpenCV_LIBS} deepsort ${RKNN_RT_LIB} ${RGA_LIB} ${ZLIB_LIBRARIES})
 
 # install target and libraries
 set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/install/yolov5_deepsort_${CMAKE_SYSTEM_NAME})
