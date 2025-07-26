@@ -14,7 +14,7 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
 # rknn api
-set(RKNN_API_PATH ${CMAKE_SOURCE_DIR}/../../runtime/RK3588/${CMAKE_SYSTEM_NAME}/librknn_api)
+set(RKNN_API_PATH ${CMAKE_SOURCE_DIR}/3rdparty/librknn_api)
 set(LIB_ARCH aarch64)
 set(RKNN_RT_LIB ${CMAKE_SOURCE_DIR}/3rdparty/librknn_api/${LIB_ARCH}/librknnrt.so)
 
@@ -28,6 +28,10 @@ include_directories(${RGA_PATH}/include)
 include_directories(${CMAKE_SOURCE_DIR}/yolov5/include)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${CMAKE_SOURCE_DIR}/deepsort/include)
+include_directories(${PROJECT_SOURCE_DIR}/3rdparty/librknn_api/include)
+
+message(${PROJECT_SOURCE_DIR})
+message(${RKNN_API_PATH})
 
 # set(
 #     include_libs  
