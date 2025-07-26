@@ -3,10 +3,10 @@ project(yolov5_deepsort VERSION 0.1.0)
 
 add_subdirectory(deepsort)
 
-set(OpenCV_DIR /home/wjp/opencv-4.6.0/install/lib/cmake/opencv4)  # 填入OpenCVConfig.cmake
 find_package(OpenCV 4 REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
-
+find_package(Eigen3 REQUIRED)
+include_directories(${EIGEN3_INCLUDE_DIRS})
 set(
     include_libs  
     "${PROJECT_SOURCE_DIR}/include"
