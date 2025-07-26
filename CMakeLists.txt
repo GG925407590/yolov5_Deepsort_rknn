@@ -7,6 +7,32 @@ find_package(OpenCV 4 REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIRS})
+
+
+set(CMAKE_INSTALL_RPATH "lib")
+
+
+# skip 3rd-party lib dependencies
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--allow-shlib-undefined")
+
+# install target and libraries
+set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/install/yolov5_deepsort_${CMAKE_SYSTEM_NAME})
+
+set(CMAKE_SKIP_INSTALL_RPATH FALSE)
+set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+
+# rknn api
+set(RKNN_API_PATH ${CMAKE_SOURCE_DIR}/../../runtime/RK3588/${CMAKE_SYSTEM_NAME}/librknn_api)
+set(LIB_ARCH aarch64)
+set(RKNN_RT_LIB ${CMAKE_SOURCE_DIR}/3rdparty/librknn_api/${LIB_ARCH}/librknnrt.so)
+
+#rga
+set(RGA_PATH ${CMAKE_SOURCE_DIR}/3rdparty/rga)
+set(RGA_LIB ${RGA_PATH}/lib/librga.so)
+
+include_directories(${RKNN_API_PATH}/include)
+
 set(
     include_libs  
     "${PROJECT_SOURCE_DIR}/include"
@@ -22,21 +48,10 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/yolov5/src YOLO_SRC_DIR)
 aux_source_directory(${PROJECT_SOURCE_DIR}/src YOLO_SRC_DIR)
 add_executable(yolov5_deepsort yolov5_deepsort.cpp ${YOLO_SRC_DIR})
 
-set(RKNN_RT_LIB ${PROJECT_SOURCE_DIR}/3rdparty/librknn_api/aarch64/librknnrt.so)
-set(RGA_LIB ${PROJECT_SOURCE_DIR}/3rdparty/rga/lib/librga.so)
 
-# 添加动态链接库
-set(
-    dynamic_libs  pthread
-    ${PROJECT_SOURCE_DIR}/3rdparty/librknn_api/aarch64/librknnrt.so
-    ${PROJECT_SOURCE_DIR}/3rdparty/rga/lib/librga.so
-)
 
-# 开启调试选项
-add_definitions("-g")
 
-target_link_libraries(yolov5_deepsort ${OpenCV_LIBS})
-target_link_libraries(yolov5_deepsort ${dynamic_libs} deepsort)
+target_link_libraries(yolov5_deepsort ${OpenCV_LIBS} deepsort ${RKNN_RT_LIB} ${RGA_LIB})
 
 # install target and libraries
 set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/install/yolov5_deepsort_${CMAKE_SYSTEM_NAME})
