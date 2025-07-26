@@ -11,8 +11,6 @@ find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIRS})
 
 
-set(CMAKE_INSTALL_RPATH "lib")
-
 
 # skip 3rd-party lib dependencies
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--allow-shlib-undefined")
@@ -51,7 +49,7 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/src YOLO_SRC_DIR)
 add_executable(yolov5_deepsort yolov5_deepsort.cpp ${YOLO_SRC_DIR})
 
 
-
+set(CMAKE_INSTALL_RPATH "lib")
 
 target_link_libraries(yolov5_deepsort ${OpenCV_LIBS} deepsort ${RKNN_RT_LIB} ${RGA_LIB} ${ZLIB_LIBRARIES})
 
