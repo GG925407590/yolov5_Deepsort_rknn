@@ -25,7 +25,7 @@ include_directories(${EIGEN3_INCLUDE_DIRS})
 
 
 # rknn api
-set(RKNN_API_PATH ${CMAKE_SOURCE_DIR}/../../runtime/RK3588/${CMAKE_SYSTEM_NAME}/librknn_api)
+set(RKNN_API_PATH ${CMAKE_SOURCE_DIR}/3rdparty/librknn_api)
 set(LIB_ARCH aarch64)
 set(RKNN_RT_LIB ${CMAKE_SOURCE_DIR}/3rdparty/librknn_api/${LIB_ARCH}/librknnrt.so)
 

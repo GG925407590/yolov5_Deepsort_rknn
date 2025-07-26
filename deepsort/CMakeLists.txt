@@ -55,3 +55,4 @@ add_library(deepsort ${DEEPSORT_SRC_DIR})
 
 target_link_libraries(deepsort ${OpenCV_LIBS} ${RKNN_RT_LIB} ${RGA_LIB})
 # target_link_libraries(deepsort ${dynamic_libs})
+set(CMAKE_INSTALL_RPATH lib)
