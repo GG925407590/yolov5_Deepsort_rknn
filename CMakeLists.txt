@@ -2,7 +2,33 @@ cmake_minimum_required(VERSION 3.0.0)
 project(yolov5_deepsort VERSION 0.1.0)
 
 
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_FLAGS "-pthread")
 
+set(CMAKE_BUILD_TYPE Debug)
+option(ENABLE_TCMALLOC "是否使用tcmalloc" OFF)
+# 区分调试模式和发布模式的编译参数
+if (CMAKE_BUILD_TYPE MATCHES Debug)
+	message(STATUS "Debug 模式")
+	add_definitions(
+		-g
+		-ggdb
+		-O0
+		-DDEBUG	# 定义宏 DEBUG
+	)
+  if(NOT ENABLE_TCMALLOC)
+    # 运行时内存线程安全检查
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer -fno-sanitize-recover")
+  endif()
+
+elseif(CMAKE_BUILD_TYPE MATCHES Release)
+	message(STATUS "Release 模式")
+	add_definitions(
+		-O3
+		-DNDEBUG # 定义宏 NDEBUG，关闭 assert() 函数
+	)
+endif()
 
 # skip 3rd-party lib dependencies
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--allow-shlib-undefined")
