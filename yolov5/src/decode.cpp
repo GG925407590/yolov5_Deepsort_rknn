@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <math.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include <string.h>
 #include <sys/time.h>
 #include <vector>
-#include <stdint.h>
 
 #include "decode.h"
 
-#define LABEL_NALE_TXT_PATH "../model/hongwai_2_labels_list.txt"
+#define LABEL_NALE_TXT_PATH "model/hongwai_2_labels_list.txt"
 
 static char *labels[OBJ_CLASS_NUM];
 
@@ -152,15 +152,16 @@ static int quick_sort_indice_inverse(
     int key_index;
     int low = left;
     int high = right;
-    if (input.size() < 2) return 0;
+    if (input.size() < 2)
+        return 0;
     if (left < right)
-    {   
-        
+    {
+
         key_index = indices[left];
         key = input[left];
         while (low < high)
         {
-            
+
             while (low < high && input[high] <= key)
             {
                 // std::cout << low << " " << high << "\n";
@@ -213,8 +214,8 @@ static float deqnt_affine_to_f32(uint8_t qnt, uint8_t zp, float scale)
 }
 
 static int process_u8(uint8_t *input, int *anchor, int grid_h, int grid_w, int height, int width, int stride,
-                   std::vector<float> &boxes, std::vector<float> &boxScores, std::vector<int> &classId,
-                   float threshold, uint8_t zp, float scale)
+                      std::vector<float> &boxes, std::vector<float> &boxScores, std::vector<int> &classId,
+                      float threshold, uint8_t zp, float scale)
 {
 
     int validCount = 0;
@@ -260,7 +261,7 @@ static int process_u8(uint8_t *input, int *anchor, int grid_h, int grid_w, int h
                     }
                     float box_conf_f32 = sigmoid(deqnt_affine_to_f32(box_confidence, zp, scale));
                     float class_prob_f32 = sigmoid(deqnt_affine_to_f32(maxClassProbs, zp, scale));
-                    boxScores.push_back(box_conf_f32* class_prob_f32);
+                    boxScores.push_back(box_conf_f32 * class_prob_f32);
                     classId.push_back(maxClassId);
                     validCount++;
                 }
@@ -271,14 +272,14 @@ static int process_u8(uint8_t *input, int *anchor, int grid_h, int grid_w, int h
 }
 
 static int process_fp(float *input, int *anchor, int grid_h, int grid_w, int height, int width, int stride,
-                   std::vector<float> &boxes, std::vector<float> &boxScores, std::vector<int> &classId,
-                   float threshold)
+                      std::vector<float> &boxes, std::vector<float> &boxScores, std::vector<int> &classId,
+                      float threshold)
 {
 
     int validCount = 0;
     int grid_len = grid_h * grid_w;
     float thres_sigmoid = unsigmoid(threshold);
-    
+
     for (int a = 0; a < 3; a++)
     {
         for (int i = 0; i < grid_h; i++)
@@ -318,7 +319,7 @@ static int process_fp(float *input, int *anchor, int grid_h, int grid_w, int hei
                     }
                     float box_conf_f32 = sigmoid(box_confidence);
                     float class_prob_f32 = sigmoid(maxClassProbs);
-                    boxScores.push_back(box_conf_f32* class_prob_f32);
+                    boxScores.push_back(box_conf_f32 * class_prob_f32);
                     classId.push_back(maxClassId);
                     validCount++;
                 }
@@ -329,9 +330,9 @@ static int process_fp(float *input, int *anchor, int grid_h, int grid_w, int hei
 }
 
 int post_process_u8(uint8_t *input0, uint8_t *input1, uint8_t *input2, int model_in_h, int model_in_w,
-                 int h_offset, int w_offset, float resize_scale, float conf_threshold, float nms_threshold,
-                 std::vector<uint8_t> &qnt_zps, std::vector<float> &qnt_scales,
-                 detect_result_group_t *group)
+                    int h_offset, int w_offset, float resize_scale, float conf_threshold, float nms_threshold,
+                    std::vector<uint8_t> &qnt_zps, std::vector<float> &qnt_scales,
+                    detect_result_group_t *group)
 {
     static int init = -1;
     if (init == -1)
@@ -355,21 +356,21 @@ int post_process_u8(uint8_t *input0, uint8_t *input1, uint8_t *input2, int model
     int grid_w0 = model_in_w / stride0;
     int validCount0 = 0;
     validCount0 = process_u8(input0, (int *)anchor0, grid_h0, grid_w0, model_in_h, model_in_w,
-                          stride0, filterBoxes, boxesScore, classId, conf_threshold, qnt_zps[0], qnt_scales[0]);
+                             stride0, filterBoxes, boxesScore, classId, conf_threshold, qnt_zps[0], qnt_scales[0]);
 
     int stride1 = 16;
     int grid_h1 = model_in_h / stride1;
     int grid_w1 = model_in_w / stride1;
     int validCount1 = 0;
     validCount1 = process_u8(input1, (int *)anchor1, grid_h1, grid_w1, model_in_h, model_in_w,
-                          stride1, filterBoxes, boxesScore, classId, conf_threshold, qnt_zps[1], qnt_scales[1]);
+                             stride1, filterBoxes, boxesScore, classId, conf_threshold, qnt_zps[1], qnt_scales[1]);
 
     int stride2 = 32;
     int grid_h2 = model_in_h / stride2;
     int grid_w2 = model_in_w / stride2;
     int validCount2 = 0;
     validCount2 = process_u8(input2, (int *)anchor2, grid_h2, grid_w2, model_in_h, model_in_w,
-                          stride2, filterBoxes, boxesScore, classId, conf_threshold, qnt_zps[2], qnt_scales[2]);
+                             stride2, filterBoxes, boxesScore, classId, conf_threshold, qnt_zps[2], qnt_scales[2]);
 
     int validCount = validCount0 + validCount1 + validCount2;
     // no object detect
@@ -410,7 +411,7 @@ int post_process_u8(uint8_t *input0, uint8_t *input1, uint8_t *input2, int model
         detbox.x1 = (int)((clamp(x1, 0, model_in_w) - w_offset) / resize_scale);
         detbox.y1 = (int)((clamp(y1, 0, model_in_h) - h_offset) / resize_scale);
         detbox.x2 = (int)((clamp(x2, 0, model_in_w) - w_offset) / resize_scale);
-        detbox.y2 = (int)((clamp(y2, 0, model_in_h)  - h_offset) / resize_scale);
+        detbox.y2 = (int)((clamp(y2, 0, model_in_h) - h_offset) / resize_scale);
         detbox.confidence = boxesScore[i];
         detbox.classID = id;
         char *label = labels[id];
@@ -426,10 +427,9 @@ int post_process_u8(uint8_t *input0, uint8_t *input1, uint8_t *input2, int model
     return 0;
 }
 
-
 int post_process_fp(float *input0, float *input1, float *input2, int model_in_h, int model_in_w,
-                 int h_offset, int w_offset, float resize_scale, float conf_threshold, float nms_threshold,
-                 detect_result_group_t *group)
+                    int h_offset, int w_offset, float resize_scale, float conf_threshold, float nms_threshold,
+                    detect_result_group_t *group)
 {
     static int init = -1;
     if (init == -1)
@@ -454,7 +454,7 @@ int post_process_fp(float *input0, float *input1, float *input2, int model_in_h,
     int grid_w0 = model_in_w / stride0;
     int validCount0 = 0;
     validCount0 = process_fp(input0, (int *)anchor0, grid_h0, grid_w0, model_in_h, model_in_w,
-                          stride0, filterBoxes, boxesScore, classId, conf_threshold);
+                             stride0, filterBoxes, boxesScore, classId, conf_threshold);
 
     // printf("2______________________________________\n");
     int stride1 = 16;
@@ -462,14 +462,14 @@ int post_process_fp(float *input0, float *input1, float *input2, int model_in_h,
     int grid_w1 = model_in_w / stride1;
     int validCount1 = 0;
     validCount1 = process_fp(input1, (int *)anchor1, grid_h1, grid_w1, model_in_h, model_in_w,
-                          stride1, filterBoxes, boxesScore, classId, conf_threshold);
+                             stride1, filterBoxes, boxesScore, classId, conf_threshold);
 
     int stride2 = 32;
     int grid_h2 = model_in_h / stride2;
     int grid_w2 = model_in_w / stride2;
     int validCount2 = 0;
     validCount2 = process_fp(input2, (int *)anchor2, grid_h2, grid_w2, model_in_h, model_in_w,
-                          stride2, filterBoxes, boxesScore, classId, conf_threshold);
+                             stride2, filterBoxes, boxesScore, classId, conf_threshold);
 
     int validCount = validCount0 + validCount1 + validCount2;
     // no object detect
@@ -491,7 +491,7 @@ int post_process_fp(float *input0, float *input1, float *input2, int model_in_h,
 
     nms(validCount, filterBoxes, indexArray, nms_threshold);
     // printf("5_____________________________________\n");
-    
+
     int last_count = 0;
     group->count = 0;
     /* box valid detect target */
@@ -511,22 +511,22 @@ int post_process_fp(float *input0, float *input1, float *input2, int model_in_h,
         float x2 = x1 + filterBoxes[n * 4 + 2];
         float y2 = y1 + filterBoxes[n * 4 + 3];
         int id = classId[n];
-        
+
         DetectBox detbox;
         detbox.x1 = (int)((clamp(x1, 0, model_in_w) - w_offset) / resize_scale);
         detbox.y1 = (int)((clamp(y1, 0, model_in_h) - h_offset) / resize_scale);
         detbox.x2 = (int)((clamp(x2, 0, model_in_w) - w_offset) / resize_scale);
-        detbox.y2 = (int)((clamp(y2, 0, model_in_h)  - h_offset) / resize_scale);
-        
+        detbox.y2 = (int)((clamp(y2, 0, model_in_h) - h_offset) / resize_scale);
+
         detbox.confidence = boxesScore[i];
-        
+
         detbox.classID = id;
         char *label = labels[id];
         strncpy(detbox.name, label, OBJ_NAME_MAX_SIZE);
         group->results.push_back(detbox);
         // printf("result %2d: (%4d, %4d, %4d, %4d), %s\n", i, detbox.box.left, detbox.box.top,
         //        detbox.box.right, detbox.box.bottom, label);
-        
+
         last_count++;
     }
     group->count = last_count;
