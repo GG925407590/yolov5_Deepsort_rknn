@@ -1,14 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(yolov5_deepsort VERSION 0.1.0)
 
-add_subdirectory(deepsort)
-
-find_package(ZLIB REQUIRED)
-
-find_package(OpenCV 4 REQUIRED)
-include_directories(${OpenCV_INCLUDE_DIRS})
-find_package(Eigen3 REQUIRED)
-include_directories(${EIGEN3_INCLUDE_DIRS})
 
 
 
@@ -21,6 +13,16 @@ set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/install/yolov5_deepsort_${CMAKE_SYS
 set(CMAKE_SKIP_INSTALL_RPATH FALSE)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+
+add_subdirectory(deepsort)
+
+find_package(ZLIB REQUIRED)
+
+find_package(OpenCV 4 REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
+find_package(Eigen3 REQUIRED)
+include_directories(${EIGEN3_INCLUDE_DIRS})
+
 
 # rknn api
 set(RKNN_API_PATH ${CMAKE_SOURCE_DIR}/../../runtime/RK3588/${CMAKE_SYSTEM_NAME}/librknn_api)
@@ -45,7 +47,6 @@ include_directories(${RKNN_API_PATH}/include)
 # include_directories(${include_libs})
 
 include_directories(${CMAKE_SOURCE_DIR}/3rdparty)
-include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${RGA_PATH}/include)
 include_directories(${CMAKE_SOURCE_DIR}/yolov5/include)
 include_directories(${CMAKE_SOURCE_DIR}/include)
