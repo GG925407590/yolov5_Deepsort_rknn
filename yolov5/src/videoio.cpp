@@ -2,6 +2,7 @@
 #include "common.h"
 #include "resize.h"
 #include <thread>
+#include <unistd.h>
 
 using namespace std;
 
@@ -182,8 +183,130 @@ void get_max_scale(int input_width, int input_height, int net_width, int net_hei
     return;
 }
 
-// 写视频
 void videoWrite(const char *save_path, int cpuid)
+{
+    cpu_set_t mask;
+    CPU_ZERO(&mask);
+    CPU_SET(cpuid, &mask);
+
+    if (pthread_setaffinity_np(pthread_self(), sizeof(mask), &mask) < 0)
+        cerr << "set thread affinity failed" << endl;
+
+    printf("[VideoWrite] Thread bound to CPU %d\n", cpuid);
+
+    cv::VideoWriter vid_writer;
+    int waitCount = 0;
+
+    // 第一个等待循环的诊断日志
+    cout << "[VideoWrite] Waiting for first queueInput data..." << endl;
+    while (1)
+    {
+        waitCount++;
+        // 每1秒打印一次状态
+        if (waitCount % 1000 == 0)
+        {
+            cout << "[VideoWrite] Waiting for queueInput... ("
+                 << "Size: " << queueInput.size()
+                 << ", bTracking: " << bTracking
+                 << ", WaitCount: " << waitCount << ")" << endl;
+        }
+
+        if (queueInput.size() > 0)
+        {
+            cout << "[VideoWrite] Received first frame. Initializing VideoWriter..." << endl;
+            cout << "[VideoWrite] Video info: "
+                 << video_probs.Video_width << "x" << video_probs.Video_height
+                 << ", FPS: " << video_probs.Fps
+                 << ", FourCC: " << video_probs.Video_fourcc << endl;
+
+            vid_writer = cv::VideoWriter(save_path, video_probs.Video_fourcc, video_probs.Fps,
+                                         cv::Size(video_probs.Video_width, video_probs.Video_height));
+
+            // 检查VideoWriter是否成功初始化
+            if (!vid_writer.isOpened())
+            {
+                cerr << "[VideoWrite] ERROR! Failed to open VideoWriter for: " << save_path << endl;
+                cerr << "[VideoWrite] Please check: " << endl;
+                cerr << "  1. Output path permissions" << endl;
+                cerr << "  2. Valid FourCC code (" << video_probs.Video_fourcc << ")" << endl;
+                cerr << "  3. Valid dimensions: " << video_probs.Video_width << "x" << video_probs.Video_height << endl;
+                exit(EXIT_FAILURE);
+            }
+            else
+            {
+                cout << "[VideoWrite] VideoWriter successfully initialized: " << save_path << endl;
+            }
+            break;
+        }
+
+        // 每1000次等待休眠1秒（约1000×1ms）
+        usleep(1000);
+    }
+
+    int frameCount = 0;
+    cout << "[VideoWrite] Starting video writing loop..." << endl;
+    while (1)
+    {
+        // 处理队列中的帧
+        if (queueOutput.size() > 0)
+        {
+            mtxQueueOutput.lock();
+            imageout_idx res_pair = queueOutput.front();
+            queueOutput.pop();
+            mtxQueueOutput.unlock();
+
+            frameCount++;
+            if (frameCount % 10 == 0)
+            {
+                cout << "[VideoWrite] Writing frame " << res_pair.dets.id
+                     << " (Total: " << frameCount << ")" << endl;
+            }
+
+            draw_image(res_pair.img, res_pair.dets);
+            vid_writer.write(res_pair.img);
+        }
+        // 检查结束条件
+        else if (!bTracking)
+        {
+            cout << "[VideoWrite] bTracking=false detected. Checking if queue is empty..." << endl;
+
+            // 确保队列真正为空
+            usleep(100000); // 额外等待100ms以防有数据在传输中
+            if (queueOutput.size() == 0)
+            {
+                cout << "[VideoWrite] Final queue size: " << queueOutput.size()
+                     << ". Releasing VideoWriter." << endl;
+                vid_writer.release();
+                break;
+            }
+            else
+            {
+                cout << "[VideoWrite] WARNING: bTracking=false but queue still has "
+                     << queueOutput.size() << " frames!" << endl;
+            }
+        }
+        // 添加空队列时的诊断信息
+        else
+        {
+            static int emptyCount = 0;
+            emptyCount++;
+
+            // 每10秒报告一次空队列状态
+            if (emptyCount % 10000 == 0)
+            {
+                cout << "[VideoWrite] Queue empty - Waiting for frames... ("
+                     << "EmptyCount: " << emptyCount
+                     << ", bTracking: " << bTracking
+                     << ", QueueSize: " << queueOutput.size() << ")" << endl;
+            }
+            usleep(1000); // 避免100% CPU占用
+        }
+    }
+    cout << "[VideoWrite] Process completed. Wrote " << frameCount << " frames." << endl;
+}
+
+// 写视频
+void videoWrite1(const char *save_path, int cpuid)
 {
     cpu_set_t mask;
     CPU_ZERO(&mask);
