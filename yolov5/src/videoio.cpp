@@ -134,23 +134,49 @@ void videoResize(int cpuid)
         cv::cvtColor(img_src, img, cv::COLOR_BGR2RGB);
 
         cv::Mat img_pad;
-        resize(img, img_pad, cv::Size(640, 640), 0, 0, 1);
+        // resize(img, img_pad, cv::Size(640, 640), 0, 0, 1);
 
-        if (add_head)
+        // if (add_head)
+        // {
+        //     // adaptive head
+        // }
+        // else
+        // {
+        //     // rga resize
+
+        //     void *resize_buf = malloc(NET_INPUTHEIGHT * NET_INPUTWIDTH * NET_INPUTCHANNEL);
+        //     src = wrapbuffer_virtualaddr((void *)img.data, img.cols, img.rows, RK_FORMAT_RGB_888);
+        //     dst = wrapbuffer_virtualaddr((void *)resize_buf, NET_INPUTWIDTH, NET_INPUTHEIGHT, RK_FORMAT_RGB_888);
+        // }
+        float img_wh_ratio = (float)img.cols / (float)img.rows;
+        float input_wh_ratio = (float)NET_INPUTWIDTH / (float)NET_INPUTHEIGHT;
+        float resize_scale;
+        int resize_width, resize_height;
+        int h_pad = 0, w_pad = 0;
+
+        if (img_wh_ratio >= input_wh_ratio)
         {
-            // adaptive head
+            // pad height dim
+            resize_scale = (float)NET_INPUTWIDTH / (float)img.cols;
+            resize_width = NET_INPUTWIDTH;
+            resize_height = (int)((float)img.rows * resize_scale);
+            h_pad = (NET_INPUTHEIGHT - resize_height) / 2;
         }
         else
         {
-            // rga resize
-
-            void *resize_buf = malloc(NET_INPUTHEIGHT * NET_INPUTWIDTH * NET_INPUTCHANNEL);
-            src = wrapbuffer_virtualaddr((void *)img.data, img.cols, img.rows, RK_FORMAT_RGB_888);
-            dst = wrapbuffer_virtualaddr((void *)resize_buf, NET_INPUTWIDTH, NET_INPUTHEIGHT, RK_FORMAT_RGB_888);
+            // pad width dim
+            resize_scale = (float)NET_INPUTHEIGHT / (float)img.rows;
+            resize_width = (int)((float)img.cols * resize_scale);
+            resize_height = NET_INPUTHEIGHT;
+            w_pad = (NET_INPUTWIDTH - resize_width) / 2;
         }
 
+        // 调整大小并填充
+        cv::resize(img, img_pad, cv::Size(resize_width, resize_height));
+        cv::copyMakeBorder(img_pad, img_pad, h_pad, h_pad, w_pad, w_pad, cv::BORDER_CONSTANT, cv::Scalar(128, 128, 128));
+
         mtxQueueInput.lock();
-        queueInput.push(input_image(idxInputImage, img_src, img_pad));
+        queueInput.push(input_image(idxInputImage, img_src, img_pad, resize_scale, w_pad, h_pad));
         mtxQueueInput.unlock();
         idxInputImage++;
     }
