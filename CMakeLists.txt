@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "-pthread")
 
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
 option(ENABLE_TCMALLOC "是否使用tcmalloc" OFF)
 # 区分调试模式和发布模式的编译参数
 if (CMAKE_BUILD_TYPE MATCHES Debug)

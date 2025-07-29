@@ -8,8 +8,8 @@
 #endif // BOX_H
 
 #define BYTE unsigned char
-#define IMG_WIDTH 1024
-#define IMG_HEIGHT 540
+#define IMG_WIDTH 854
+#define IMG_HEIGHT 480
 #define IMG_CHANNEL 3
 #define IMG_PAD 640
 
@@ -26,8 +26,8 @@
 #define PROP_BOX_SIZE     (5+OBJ_CLASS_NUM)
 
 // 阈值
-#define NMS_THRESH        0.2
-#define BOX_THRESH        0.2
+#define NMS_THRESH        0.3
+#define BOX_THRESH        0.5
 
 // 每一层nbox的数量
 #define nboxes_0 GRID0*GRID0*nanchor
